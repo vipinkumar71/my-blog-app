@@ -2,7 +2,7 @@
 
 A modern blog platform built with Next.js, MongoDB, and NextAuth.js. This application allows users to create, edit, delete, and publish blog posts with a clean, responsive UI.
 
-![Next.js Blog Platform](https://picsum.photos/seed/nextjs-blog/800/400)
+![Next.js and React.js Logo](https://i.postimg.cc/c1BsG67w/next-React.webp)
 
 ## Features
 
