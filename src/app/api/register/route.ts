@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const userObj = user.toObject();
 
     // Don't return the password
-    const { password, ...userWithoutPassword } = userObj;
+    const { password: _password, ...userWithoutPassword } = userObj;
 
     // Convert _id to id to match Prisma format
     userWithoutPassword.id = userWithoutPassword._id.toString();
