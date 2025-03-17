@@ -3,10 +3,8 @@
   "ignoreCommand": "node -e \"process.exit(0)\"",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "build": {
-    "env": {
-      "NEXT_IGNORE_ESLINT": "true",
-      "NEXT_IGNORE_TYPECHECK": "true"
-    }
+  "env": {
+    "NEXT_IGNORE_ESLINT": "true",
+    "NEXT_IGNORE_TYPECHECK": "true"
   }
 }
