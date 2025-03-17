@@ -1,16 +1,6 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next",
-      "config": {
-        "eslint": {
-          "ignoreDuringBuilds": true
-        },
-        "typescript": {
-          "ignoreBuildErrors": true
-        }
-      }
-    }
-  ]
+  "buildCommand": "next build",
+  "ignoreCommand": "node -e \"process.exit(0)\"",
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }
