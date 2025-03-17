@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import useAuthStore from "@/store/authStore";
 import Image from "next/image";
@@ -13,7 +13,6 @@ import Image from "next/image";
 export default function Navbar(): React.ReactElement {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const pathname = usePathname();
-  const router = useRouter();
   const { session, status } = useAuthStore();
   const { data: nextAuthSession } = useSession();
 

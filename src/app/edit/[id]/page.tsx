@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import useAuthStore from "@/store/authStore";
-import { use } from "react";
 
 interface Post {
   id: string;

@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
-import { use } from "react";
 
 // Interface for MongoDB document structure
 interface MongoPost {

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useSession } from "next-auth/react";
+// Removed unused imports
+// import Image from "next/image";
+// import { useSession } from "next-auth/react";
 import useAuthStore from "@/store/authStore";
 
 export default function Home() {
