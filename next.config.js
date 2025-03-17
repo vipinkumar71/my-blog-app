@@ -8,6 +8,9 @@ const nextConfig = {
     // Warning: This allows production builds to successfully complete even with TypeScript errors
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: ["picsum.photos"], // Add picsum.photos to allowed image domains
+  },
 };
 
 module.exports = nextConfig;

@@ -93,7 +93,9 @@ export default function EditProfilePage() {
   if (!session) {
     return (
       <div className="container mx-auto p-4">
-        <p className="text-gray-800">Please sign in to edit your profile.</p>
+        <p className="text-yellow-500 font-semibold">
+          Please sign in to edit your profile.
+        </p>
       </div>
     );
   }
