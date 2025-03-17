@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog Platform with Next.js and Authentication
+
+A full-featured blog platform built with Next.js, NextAuth.js, Prisma, and PostgreSQL. This application allows users to register, log in, create, edit, delete, and view blog posts.
+
+## Features
+
+- **Authentication & Authorization**
+
+  - User registration and login
+  - JWT-based authentication with NextAuth.js
+  - Protected routes for authenticated users
+  - Social login with GitHub and Google (requires API keys)
+
+- **Blog Management**
+
+  - Create, edit, and delete blog posts
+  - Publish/unpublish functionality
+  - Rich text editing
+  - Image support via placeholder images
+
+- **Modern UI**
+
+  - Responsive design with TailwindCSS
+  - Mobile-friendly interface
+  - Clean and intuitive user experience
+
+- **Performance Optimized**
+  - Server-side rendering for blog post pages
+  - Static site generation for blog listing
+  - Optimized images with next/image
+  - Fast page transitions
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, TailwindCSS
+- **Authentication**: NextAuth.js
+- **Database**: PostgreSQL with Prisma ORM
+- **State Management**: Zustand
+- **Styling**: TailwindCSS
+- **Deployment**: Vercel (recommended)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+ and npm/yarn
+- PostgreSQL database
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/yourusername/blog-platform.git
+   cd blog-platform
+   ```
 
-## Learn More
+2. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up environment variables:
+   Create a `.env` file in the root directory with the following variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/blog_db?schema=public"
+   NEXTAUTH_SECRET="your-nextauth-secret-key"
+   NEXTAUTH_URL="http://localhost:3000"
 
-## Deploy on Vercel
+   # Optional OAuth providers
+   GITHUB_ID=your_github_client_id
+   GITHUB_SECRET=your_github_client_secret
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Set up the database:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Database Schema
+
+The application uses the following database schema:
+
+- **User**: Stores user information and authentication details
+- **Post**: Stores blog post content, publication status, and author reference
+- **Account**: Stores OAuth account information (for NextAuth.js)
+- **Session**: Stores user session information (for NextAuth.js)
+- **VerificationToken**: Stores email verification tokens (for NextAuth.js)
+
+## Deployment
+
+This application can be easily deployed to Vercel:
+
+1. Push your code to a GitHub repository
+2. Import the project in Vercel
+3. Set up the environment variables
+4. Deploy
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
