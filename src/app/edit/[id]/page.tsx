@@ -14,10 +14,7 @@ interface Post {
 }
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
-  // For client components in Next.js, params is not a Promise object, so we don't need to use React.use()
-  // We can access the id directly
   const id = params.id;
-
   const router = useRouter();
   const { session, status } = useAuthStore();
   const [post, setPost] = useState<Post | null>(null);

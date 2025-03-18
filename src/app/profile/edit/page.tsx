@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-// import { useRouter } from "next/navigation"; // Not used
 import useAuthStore from "@/store/authStore";
 
 export default function EditProfilePage() {
   const { data: session, update: updateSession } = useSession();
-  // const router = useRouter(); // Not used
   const { setSession } = useAuthStore();
 
   const [name, setName] = useState("");

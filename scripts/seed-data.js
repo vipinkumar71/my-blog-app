@@ -64,181 +64,108 @@ const Post = mongoose.model(
   })
 );
 
+// Sample seed data
+const sampleUsers = [
+  {
+    name: "Admin User",
+    email: "admin@example.com",
+    password: "adminPassword123",
+    image: "https://i.pravatar.cc/150?u=admin@example.com",
+    emailVerified: new Date(),
+  },
+  {
+    name: "Test User",
+    email: "user@example.com",
+    password: "userPassword123",
+    image: "https://i.pravatar.cc/150?u=user@example.com",
+    emailVerified: new Date(),
+  },
+];
+
+const samplePosts = [
+  {
+    title: "Getting Started with Next.js",
+    content:
+      "Next.js is a powerful React framework that makes building web applications easy...",
+    published: true,
+  },
+  {
+    title: "MongoDB for Beginners",
+    content:
+      "MongoDB is a popular NoSQL database that stores data in JSON-like documents...",
+    published: true,
+  },
+  {
+    title: "Authentication Best Practices",
+    content:
+      "Implementing secure authentication is crucial for web applications...",
+    published: true,
+  },
+  {
+    title: "Draft Post Example",
+    content:
+      "This is an unpublished draft post that demonstrates the publishing workflow...",
+    published: false,
+  },
+];
+
+/**
+ * Seeds the database with sample users and posts
+ */
 async function seedDatabase() {
   try {
-    // Delete existing data
+    // Clear existing data
     await User.deleteMany({});
     await Post.deleteMany({});
-
     console.log("Cleared existing data");
 
-    // Create a dummy user
-    const password = await bcrypt.hash("password123", 10);
-    const user = await User.create({
-      name: "John Doe",
-      email: "john@example.com",
-      password: password,
-      image: "https://i.pravatar.cc/150?u=john",
-    });
+    // Create users with hashed passwords
+    const users = [];
+    for (const userData of sampleUsers) {
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const user = await User.create({
+        ...userData,
+        password: hashedPassword,
+      });
+      users.push(user);
+      console.log(`Created user: ${user.name} (${user.email})`);
+    }
 
-    console.log("Created user:", user.email);
+    // Create posts linked to random users
+    const posts = [];
+    for (const postData of samplePosts) {
+      // Select a random user as author
+      const randomUser = users[Math.floor(Math.random() * users.length)];
 
-    // Create sample posts
-    const posts = [
-      {
-        title: "Getting Started with Next.js",
-        content: `Next.js is a powerful React framework that provides a great developer experience with all the features you need for production.
+      const post = await Post.create({
+        ...postData,
+        authorId: randomUser._id,
+      });
+      posts.push(post);
+      console.log(`Created post: ${post.title} by ${randomUser.name}`);
+    }
 
-In this post, we'll explore the basics of Next.js and how to get started with your first project.
+    console.log("\nDatabase seeding completed successfully!");
+    console.log(`Created ${users.length} users and ${posts.length} posts`);
 
-Next.js provides features like:
-- Server-side rendering
-- Static site generation
-- API routes
-- Built-in CSS and Sass support
-- Fast refresh
-- TypeScript support
-
-To create a new Next.js app, you can use the create-next-app command:
-
-\`\`\`
-npx create-next-app@latest my-next-app
-\`\`\`
-
-This will set up everything you need to get started with a new Next.js project.`,
-        published: true,
-        authorId: user._id,
-      },
-      {
-        title: "Working with MongoDB in Next.js",
-        content: `MongoDB is a popular NoSQL database that works excellently with Next.js applications.
-
-In this tutorial, we'll learn how to integrate MongoDB with a Next.js application using Mongoose.
-
-First, you'll need to install the necessary dependencies:
-
-\`\`\`
-npm install mongoose
-\`\`\`
-
-Then, create a connection utility file to handle the MongoDB connection:
-
-\`\`\`
-// lib/mongodb.js
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then(mongoose => mongoose);
-  }
-  
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
-export default dbConnect;
-\`\`\`
-
-This utility helps maintain a single connection to the database across your application.`,
-        published: true,
-        authorId: user._id,
-      },
-      {
-        title: "Building a Blog with Next.js and MongoDB",
-        content: `Creating a blog is a great way to learn web development. In this post, we'll walk through the process of building a full-featured blog using Next.js and MongoDB.
-
-Our blog will include:
-- User authentication
-- Creating and editing posts
-- Commenting system
-- Like functionality
-- Responsive design
-
-We'll structure our application following best practices and use various Next.js features like API routes, server components, and incremental static regeneration.
-
-The first step is setting up our project structure:
-
-\`\`\`
-my-blog/
-  ├── components/
-  ├── lib/
-  ├── models/
-  ├── pages/
-  ├── public/
-  ├── styles/
-  ├── .env
-  ├── package.json
-  └── next.config.js
-\`\`\`
-
-Next, we'll define our data models and set up the MongoDB connection...`,
-        published: true,
-        authorId: user._id,
-      },
-      {
-        title: "Advanced MongoDB Techniques",
-        content: `MongoDB offers powerful features beyond basic CRUD operations. In this advanced guide, we'll explore techniques that can take your application to the next level.
-
-Topics covered:
-- Aggregation pipelines
-- Indexing strategies
-- Transaction support
-- Schema design patterns
-- Performance optimization
-
-The aggregation pipeline is one of MongoDB's most powerful features. It allows you to process data records and return computed results using a series of pipeline stages.
-
-Here's an example of an aggregation pipeline that groups blog posts by author and counts them:
-
-\`\`\`javascript
-db.posts.aggregate([
-  { $group: { _id: "$authorId", count: { $sum: 1 } } },
-  { $sort: { count: -1 } }
-])
-\`\`\`
-
-This returns a list of authors sorted by the number of posts they've created.`,
-        published: true,
-        authorId: user._id,
-      },
-      {
-        title: "Draft Post - Coming Soon",
-        content:
-          "This is a draft post that will be published soon. Stay tuned for more content!",
-        published: false,
-        authorId: user._id,
-      },
-    ];
-
-    await Post.insertMany(posts);
-
-    console.log(`Created ${posts.length} sample posts`);
-
-    console.log("Database seeded successfully");
-
-    // Close the connection
-    await mongoose.connection.close();
-    console.log("MongoDB connection closed");
+    return { users, posts };
   } catch (error) {
     console.error("Error seeding database:", error);
-    process.exit(1);
+    throw error;
+  } finally {
+    // Close the database connection
+    await mongoose.connection.close();
+    console.log("Database connection closed");
   }
 }
 
-seedDatabase();
+// Run the seeding function
+seedDatabase()
+  .then(() => {
+    console.log("Seeding complete! You can now start your application.");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Failed to seed database:", error);
+    process.exit(1);
+  });

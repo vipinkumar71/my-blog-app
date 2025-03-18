@@ -4,6 +4,12 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
+import {
+  safeDocument,
+  processSafeDocuments,
+  getAuthorId,
+  createSafeAuthor,
+} from "@/lib/mongoUtils";
 
 // Type definitions for better TypeScript support
 interface User {
@@ -18,20 +24,21 @@ interface Session {
 }
 
 interface PostDocument {
-  _id: mongoose.Types.ObjectId | string;
-  title: string;
-  content: string;
-  published: boolean;
-  createdAt: string;
-  updatedAt: string;
-  authorId:
+  _id?: mongoose.Types.ObjectId | string;
+  title?: string;
+  content?: string;
+  published?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  authorId?:
     | {
-        _id: mongoose.Types.ObjectId | string;
-        name: string;
-        email: string;
+        _id?: mongoose.Types.ObjectId | string;
+        name?: string;
+        email?: string;
         image?: string;
       }
-    | string;
+    | string
+    | null;
   __v?: number; // Mongoose version key
 }
 
@@ -50,7 +57,6 @@ interface TransformedPost {
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const session = (await getServerSession(authOptions)) as Session | null;
-
     console.log("Current user session:", session?.user);
 
     await dbConnect();
@@ -63,47 +69,27 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       })
       .lean();
 
-    console.log("Total posts found:", postsDoc.length);
+    console.log("Total posts found:", postsDoc?.length || 0);
 
-    // Safe type assertion
-    const posts = postsDoc as unknown as PostDocument[];
+    // Use our utility to safely process all documents
+    const safePosts = processSafeDocuments<PostDocument>(postsDoc);
 
-    // For debugging, log post authors
-    posts.forEach((post) => {
-      const authorId =
-        typeof post.authorId === "string"
-          ? post.authorId
-          : post.authorId._id.toString();
+    console.log("Successfully processed posts:", safePosts.length);
 
-      const authorName =
-        typeof post.authorId === "string" ? "Unknown" : post.authorId.name;
-
-      console.log("Post:", {
-        id: post._id.toString(),
-        title: post.title,
-        authorId: authorId,
-        authorName: authorName,
-      });
-    });
-
-    const transformedPosts: TransformedPost[] = posts.map((post) => {
-      const authorId =
-        typeof post.authorId === "string"
-          ? post.authorId
-          : post.authorId._id.toString();
-
-      const authorName =
-        typeof post.authorId === "string" ? "Unknown" : post.authorId.name;
+    // Transform posts to the expected format
+    const transformedPosts = safePosts.map((post) => {
+      // Use our utility to get author info
+      const author = createSafeAuthor({ authorId: post.authorId });
 
       return {
-        id: post._id.toString(),
-        title: post.title,
+        id: post.id,
+        title: post.title || "Untitled",
         content: post.content ? post.content.substring(0, 100) + "..." : "",
-        published: post.published,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        authorId: authorId,
-        authorName: authorName,
+        published: !!post.published,
+        createdAt: post.createdAt || new Date().toISOString(),
+        updatedAt: post.updatedAt || new Date().toISOString(),
+        authorId: author.id,
+        authorName: author.name || "Unknown",
       };
     });
 
@@ -149,15 +135,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     await post.save();
 
+    // Use our utility to safely process the new post
+    const safePost = safeDocument<PostDocument>(post);
+
     return NextResponse.json(
       {
-        id: post._id.toString(),
-        title: post.title,
-        content: post.content,
-        published: post.published,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-        authorId: post.authorId.toString(),
+        id: safePost.id,
+        title: safePost.title || "",
+        content: safePost.content || "",
+        published: !!safePost.published,
+        createdAt: safePost.createdAt || new Date().toISOString(),
+        updatedAt: safePost.updatedAt || new Date().toISOString(),
+        authorId: safePost.authorId?.toString() || session.user.id,
       },
       { status: 201 }
     );

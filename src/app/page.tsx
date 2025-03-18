@@ -1,9 +1,6 @@
 "use client";
 
 import Link from "next/link";
-// Removed unused imports
-// import Image from "next/image";
-// import { useSession } from "next-auth/react";
 import useAuthStore from "@/store/authStore";
 
 export default function Home() {
@@ -154,7 +151,9 @@ export default function Home() {
             </>
           ) : (
             <>
-              <h2 className="text-3xl font-bold mb-6">Share Your Knowledge</h2>
+              <h2 className="text-3xl font-bold mb-6">
+                Publish your passions, your way
+              </h2>
               <p className="text-xl mb-8 max-w-2xl mx-auto">
                 Ready to write your next post? Share your expertise and ideas
                 with our community.

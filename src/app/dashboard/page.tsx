@@ -39,20 +39,100 @@ export default function DashboardPage() {
   const fetchUserPosts = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/posts");
-      const allPosts = await response.json();
 
-      console.log("Current user ID:", session?.user?.id);
-      console.log("All posts:", allPosts.length);
-
-      // Filter posts by the current user
-      const userPosts = allPosts.filter((post: Post) => {
-        const isUserPost = post.authorId === session?.user?.id;
-        console.log(
-          `Post ${post.id}: authorId=${post.authorId}, isUserPost=${isUserPost}`
+      if (!session?.user?.id) {
+        console.error("Cannot fetch posts: No user ID available");
+        setError(
+          "User information not available. Please try logging in again."
         );
-        return isUserPost;
-      });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("Fetching posts for user:", session.user.id);
+
+      const response = await fetch("/api/posts");
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      // Safely parse the JSON response with a try-catch
+      let data;
+      try {
+        data = await response.json();
+      } catch (error) {
+        console.error("Failed to parse API response:", error);
+        setError("Failed to parse server response. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Triple safety check for data validity
+      if (!data) {
+        console.error("API response was empty");
+        setError("No data received from server.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if the response is an array
+      if (!Array.isArray(data)) {
+        console.error("API did not return an array:", data);
+        // Try to handle non-array responses by wrapping single objects in an array
+        if (typeof data === "object" && data !== null) {
+          console.log("Attempting to convert object to array");
+          data = [data];
+        } else {
+          setError("Invalid data format received from server.");
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      console.log("Current user ID:", session.user.id);
+      console.log("All posts length:", data.length);
+
+      // Filter posts by the current user with comprehensive null checks
+      const userPosts = data
+        .filter((post) => {
+          // Skip null or undefined posts
+          if (!post) {
+            console.log("Encountered null post in data array");
+            return false;
+          }
+
+          // Skip posts without IDs
+          if (!post.id) {
+            console.log("Post has no ID, skipping");
+            return false;
+          }
+
+          // Ensure post has an id for logging
+          const postId = post.id || "unknown-id";
+
+          // Handle potentially missing authorId
+          if (!post.authorId) {
+            console.log(`Post ${postId}: missing authorId`);
+            return false;
+          }
+
+          const isUserPost = post.authorId === session.user.id;
+          console.log(
+            `Post ${postId}: authorId=${post.authorId}, isUserPost=${isUserPost}`
+          );
+          return isUserPost;
+        })
+        // Ensure posts have required properties
+        .map((post) => ({
+          id: post.id,
+          title: post.title || "Untitled",
+          content: post.content || "",
+          published: !!post.published,
+          createdAt: post.createdAt || new Date().toISOString(),
+          updatedAt: post.updatedAt || new Date().toISOString(),
+          authorId: post.authorId || "unknown",
+        }));
 
       console.log("User posts found:", userPosts.length);
       setPosts(userPosts);

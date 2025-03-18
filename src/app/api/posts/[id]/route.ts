@@ -4,23 +4,25 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
+import { safeDocument, createSafeAuthor } from "@/lib/mongoUtils";
 
 // Interface for MongoDB document structure
 interface MongoPost {
-  _id: mongoose.Types.ObjectId | string;
-  title: string;
-  content: string;
-  published: boolean;
-  createdAt: string;
-  updatedAt: string;
-  authorId:
+  _id?: mongoose.Types.ObjectId | string;
+  title?: string;
+  content?: string;
+  published?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  authorId?:
     | {
-        _id: mongoose.Types.ObjectId | string;
-        name: string;
-        email: string;
+        _id?: mongoose.Types.ObjectId | string;
+        name?: string;
+        email?: string;
         image?: string;
       }
-    | string; // Can be string when not populated
+    | string
+    | null; // Can be string when not populated
   __v?: number; // Mongoose version key
 }
 
@@ -51,30 +53,20 @@ export async function GET(
       return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
-    // Safe type assertion
-    const post = postDoc as unknown as MongoPost;
+    // Use our utilities to safely process the document
+    const safePost = safeDocument<MongoPost>(postDoc, id);
+    const author = createSafeAuthor(postDoc);
 
-    // Transform to match the Prisma format
+    // Create a transformed post with all necessary data
     const transformedPost = {
-      id: post._id.toString(),
-      title: post.title,
-      content: post.content,
-      published: post.published,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      authorId:
-        typeof post.authorId === "string"
-          ? post.authorId
-          : post.authorId._id.toString(),
-      author:
-        typeof post.authorId !== "string"
-          ? {
-              id: post.authorId._id.toString(),
-              name: post.authorId.name,
-              email: post.authorId.email,
-              image: post.authorId.image,
-            }
-          : undefined,
+      id: safePost.id,
+      title: safePost.title || "Untitled",
+      content: safePost.content || "",
+      published: !!safePost.published,
+      createdAt: safePost.createdAt || new Date().toISOString(),
+      updatedAt: safePost.updatedAt || new Date().toISOString(),
+      authorId: author.id,
+      author: author,
     };
 
     return NextResponse.json(transformedPost);
@@ -116,16 +108,11 @@ export async function PATCH(
       return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
-    // Safe type assertion
-    const existingPost = existingPostDoc as unknown as MongoPost;
+    // Use our utility to safely process the document
+    const existingPost = safeDocument<MongoPost>(existingPostDoc, id);
+    const author = createSafeAuthor(existingPostDoc);
 
-    // Check author ID - need to handle string or object
-    const authorId =
-      typeof existingPost.authorId === "string"
-        ? existingPost.authorId
-        : existingPost.authorId._id.toString();
-
-    if (authorId !== session.user.id) {
+    if (author.id !== session.user.id) {
       return NextResponse.json(
         { message: "You can only edit your own posts" },
         { status: 403 }
@@ -153,30 +140,27 @@ export async function PATCH(
       })
       .lean();
 
-    // Safe type assertion
-    const updatedPost = updatedPostDoc as unknown as MongoPost;
+    if (!updatedPostDoc) {
+      return NextResponse.json(
+        { message: "Failed to update post" },
+        { status: 500 }
+      );
+    }
 
-    // Transform to match the Prisma format
+    // Use our utilities to safely process the updated document
+    const updatedPost = safeDocument<MongoPost>(updatedPostDoc, id);
+    const updatedAuthor = createSafeAuthor(updatedPostDoc);
+
+    // Create a transformed post with all necessary data
     const transformedPost = {
-      id: updatedPost._id.toString(),
-      title: updatedPost.title,
-      content: updatedPost.content,
-      published: updatedPost.published,
-      createdAt: updatedPost.createdAt,
-      updatedAt: updatedPost.updatedAt,
-      authorId:
-        typeof updatedPost.authorId === "string"
-          ? updatedPost.authorId
-          : updatedPost.authorId._id.toString(),
-      author:
-        typeof updatedPost.authorId !== "string"
-          ? {
-              id: updatedPost.authorId._id.toString(),
-              name: updatedPost.authorId.name,
-              email: updatedPost.authorId.email,
-              image: updatedPost.authorId.image,
-            }
-          : undefined,
+      id: updatedPost.id,
+      title: updatedPost.title || "Untitled",
+      content: updatedPost.content || "",
+      published: !!updatedPost.published,
+      createdAt: updatedPost.createdAt || new Date().toISOString(),
+      updatedAt: updatedPost.updatedAt || new Date().toISOString(),
+      authorId: updatedAuthor.id,
+      author: updatedAuthor,
     };
 
     return NextResponse.json(transformedPost);
@@ -218,16 +202,11 @@ export async function DELETE(
       return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
-    // Safe type assertion
-    const existingPost = existingPostDoc as unknown as MongoPost;
+    // Use our utility to safely process the document
+    const existingPost = safeDocument<MongoPost>(existingPostDoc, id);
+    const author = createSafeAuthor(existingPostDoc);
 
-    // Check author ID - need to handle string or object
-    const authorId =
-      typeof existingPost.authorId === "string"
-        ? existingPost.authorId
-        : existingPost.authorId._id.toString();
-
-    if (authorId !== session.user.id) {
+    if (author.id !== session.user.id) {
       return NextResponse.json(
         { message: "You can only delete your own posts" },
         { status: 403 }
